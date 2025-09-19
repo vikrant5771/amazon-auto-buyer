@@ -105,6 +105,19 @@ class AmazonAutoBuyer:
             chrome_options.add_argument('--disable-cloud-import')
             chrome_options.add_argument('--disable-fetching-hints-at-navigation-start')
             
+            # Chrome stability and crash prevention
+            chrome_options.add_argument('--disable-gpu-sandbox')
+            chrome_options.add_argument('--disable-software-rasterizer')
+            chrome_options.add_argument('--disable-gpu')
+            chrome_options.add_argument('--no-first-run')
+            chrome_options.add_argument('--no-default-browser-check')
+            chrome_options.add_argument('--disable-crash-reporter')
+            chrome_options.add_argument('--disable-logging')
+            chrome_options.add_argument('--disable-in-process-stack-traces')
+            chrome_options.add_argument('--max_old_space_size=1024')
+            chrome_options.add_argument('--memory-pressure-off')
+            # Note: --single-process removed as it can cause instability on macOS
+            
             # Set user agent to avoid detection
             chrome_options.add_argument('--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36')
         
@@ -117,54 +130,95 @@ class AmazonAutoBuyer:
             if reuse_browser:
                 logging.warning(f"Failed to connect to existing Chrome session: {e}")
                 logging.info("Falling back to new Chrome session...")
-                # Retry with new session
-                chrome_options = Options()
-                if self.config.get('headless', False):
-                    chrome_options.add_argument('--headless')
-                chrome_options.add_argument('--no-sandbox')
-                chrome_options.add_argument('--disable-dev-shm-usage')
-                chrome_options.add_argument('--disable-blink-features=AutomationControlled')
-                chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-                chrome_options.add_experimental_option('useAutomationExtension', False)
-                
-                # Comprehensive arguments to suppress warnings and improve stability
-                chrome_options.add_argument('--disable-background-networking')
-                chrome_options.add_argument('--disable-background-timer-throttling')
-                chrome_options.add_argument('--disable-renderer-backgrounding')
-                chrome_options.add_argument('--disable-backgrounding-occluded-windows')
-                chrome_options.add_argument('--disable-client-side-phishing-detection')
-                chrome_options.add_argument('--disable-sync')
-                chrome_options.add_argument('--disable-default-apps')
-                chrome_options.add_argument('--disable-extensions')
-                chrome_options.add_argument('--disable-plugins')
-                chrome_options.add_argument('--disable-web-security')
-                chrome_options.add_argument('--disable-features=TranslateUI')
-                chrome_options.add_argument('--disable-ipc-flooding-protection')
-                chrome_options.add_argument('--log-level=3')  # Suppress INFO, WARNING and ERROR logs
-                
-                # Additional arguments to completely disable Google services and GCM
-                chrome_options.add_argument('--disable-component-update')
-                chrome_options.add_argument('--disable-background-mode')
-                chrome_options.add_argument('--disable-features=VizDisplayCompositor')
-                chrome_options.add_argument('--disable-features=UserAgentClientHint')
-                chrome_options.add_argument('--disable-sync-preferences')
-                chrome_options.add_argument('--disable-component-extensions-with-background-pages')
-                chrome_options.add_argument('--disable-background-downloads')
-                chrome_options.add_argument('--disable-hang-monitor')
-                chrome_options.add_argument('--disable-prompt-on-repost')
-                chrome_options.add_argument('--disable-domain-reliability')
-                chrome_options.add_argument('--disable-features=OptimizationHints')
-                chrome_options.add_argument('--gcm-checkin-url=')
-                chrome_options.add_argument('--gcm-mcs-endpoint=')
-                chrome_options.add_argument('--gcm-registration-url=')
-                chrome_options.add_argument('--disable-cloud-import')
-                chrome_options.add_argument('--disable-fetching-hints-at-navigation-start')
-                chrome_options.add_argument('--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36')
-                
-                self.driver = webdriver.Chrome(options=chrome_options)
-                self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+                return self._create_new_chrome_session()
             else:
                 raise e
+    
+    def _create_new_chrome_session(self):
+        """Create a new Chrome session with all optimizations."""
+        chrome_options = Options()
+        if self.config.get('headless', False):
+            chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+        chrome_options.add_argument('--disable-blink-features=AutomationControlled')
+        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        chrome_options.add_experimental_option('useAutomationExtension', False)
+        
+        # Comprehensive arguments to suppress warnings and improve stability
+        chrome_options.add_argument('--disable-background-networking')
+        chrome_options.add_argument('--disable-background-timer-throttling')
+        chrome_options.add_argument('--disable-renderer-backgrounding')
+        chrome_options.add_argument('--disable-backgrounding-occluded-windows')
+        chrome_options.add_argument('--disable-client-side-phishing-detection')
+        chrome_options.add_argument('--disable-sync')
+        chrome_options.add_argument('--disable-default-apps')
+        chrome_options.add_argument('--disable-extensions')
+        chrome_options.add_argument('--disable-plugins')
+        chrome_options.add_argument('--disable-web-security')
+        chrome_options.add_argument('--disable-features=TranslateUI')
+        chrome_options.add_argument('--disable-ipc-flooding-protection')
+        chrome_options.add_argument('--log-level=3')  # Suppress INFO, WARNING and ERROR logs
+        
+        # Additional arguments to completely disable Google services and GCM
+        chrome_options.add_argument('--disable-component-update')
+        chrome_options.add_argument('--disable-background-mode')
+        chrome_options.add_argument('--disable-features=VizDisplayCompositor')
+        chrome_options.add_argument('--disable-features=UserAgentClientHint')
+        chrome_options.add_argument('--disable-sync-preferences')
+        chrome_options.add_argument('--disable-component-extensions-with-background-pages')
+        chrome_options.add_argument('--disable-background-downloads')
+        chrome_options.add_argument('--disable-hang-monitor')
+        chrome_options.add_argument('--disable-prompt-on-repost')
+        chrome_options.add_argument('--disable-domain-reliability')
+        chrome_options.add_argument('--disable-features=OptimizationHints')
+        chrome_options.add_argument('--gcm-checkin-url=')
+        chrome_options.add_argument('--gcm-mcs-endpoint=')
+        chrome_options.add_argument('--gcm-registration-url=')
+        chrome_options.add_argument('--disable-cloud-import')
+        chrome_options.add_argument('--disable-fetching-hints-at-navigation-start')
+        
+        # Chrome stability and crash prevention
+        chrome_options.add_argument('--disable-gpu-sandbox')
+        chrome_options.add_argument('--disable-software-rasterizer')
+        chrome_options.add_argument('--disable-gpu')
+        chrome_options.add_argument('--no-first-run')
+        chrome_options.add_argument('--no-default-browser-check')
+        chrome_options.add_argument('--disable-crash-reporter')
+        chrome_options.add_argument('--disable-logging')
+        chrome_options.add_argument('--disable-in-process-stack-traces')
+        chrome_options.add_argument('--max_old_space_size=1024')
+        chrome_options.add_argument('--memory-pressure-off')
+        # Note: --single-process removed as it can cause instability on macOS
+        
+        chrome_options.add_argument('--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36')
+        
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        logging.info("New Chrome session created successfully")
+    
+    def _recover_driver(self):
+        """Attempt to recover from a Chrome crash."""
+        try:
+            logging.info("Attempting Chrome driver recovery...")
+            
+            # Close existing driver if possible
+            if self.driver:
+                try:
+                    self.driver.quit()
+                except:
+                    pass
+            
+            # Create new session
+            self._create_new_chrome_session()
+            
+            # Verify recovery
+            self.driver.get("https://www.amazon.in")
+            logging.info("Chrome driver recovery successful")
+            
+        except Exception as e:
+            logging.error(f"Chrome driver recovery failed: {e}")
+            raise Exception("Could not recover Chrome session")
         
     def login_to_amazon(self):
         """Login to Amazon with stored credentials."""
@@ -256,100 +310,166 @@ class AmazonAutoBuyer:
             return False
     
     def select_first_product(self):
-        """Select the first available product from search results."""
-        try:
-            logging.info("Selecting first product from search results...")
-            
-            # Multiple selectors to try for product links (Amazon changes these frequently)
-            product_selectors = [
-                "[data-component-type='s-search-result'] h2 a",
-                "[data-component-type='s-search-result'] .a-link-normal",
-                ".s-result-item h2 a",
-                ".s-result-item .a-link-normal",
-                ".sg-col-inner .a-link-normal",
-                "[data-asin] h2 a",
-                "[data-asin] .a-link-normal",
-                ".s-search-results .a-link-normal",
-                ".s-main-slot .a-link-normal"
-            ]
-            
-            first_product = None
-            selector_used = None
-            
-            # Try each selector until one works
-            for selector in product_selectors:
+        """Select the first available product from search results with crash recovery."""
+        max_retries = 2
+        
+        for attempt in range(max_retries):
+            try:
+                logging.info(f"Selecting first product from search results... (attempt {attempt + 1})")
+                
+                # Check if driver is still responsive
                 try:
-                    logging.info(f"Trying selector: {selector}")
-                    first_product = WebDriverWait(self.driver, 5).until(
-                        EC.element_to_be_clickable((By.CSS_SELECTOR, selector))
-                    )
-                    selector_used = selector
-                    logging.info(f"Successfully found product with selector: {selector}")
-                    break
-                except TimeoutException:
-                    logging.debug(f"Selector failed: {selector}")
-                    continue
-            
-            if not first_product:
-                logging.error("Could not find any product links with available selectors")
-                # Take a screenshot for debugging
+                    self.driver.current_url
+                except Exception as e:
+                    logging.error(f"Driver not responsive: {e}")
+                    if attempt < max_retries - 1:
+                        logging.info("Attempting to recover Chrome session...")
+                        self._recover_driver()
+                        continue
+                    else:
+                        raise e
+                
+                # Multiple selectors to try for product links (Amazon changes these frequently)
+                product_selectors = [
+                    "[data-component-type='s-search-result'] h2 a",
+                    "[data-component-type='s-search-result'] .a-link-normal",
+                    ".s-result-item h2 a",
+                    ".s-result-item .a-link-normal",
+                    ".sg-col-inner .a-link-normal",
+                    "[data-asin] h2 a",
+                    "[data-asin] .a-link-normal",
+                    ".s-search-results .a-link-normal",
+                    ".s-main-slot .a-link-normal"
+                ]
+                
+                first_product = None
+                selector_used = None
+                product_href = None
+                
+                # Try each selector until one works - OPTIMIZED FOR SPEED
+                for selector in product_selectors:
+                    try:
+                        # Flash sale mode: instant detection (0.3 seconds max)
+                        first_product = WebDriverWait(self.driver, 0.3).until(
+                            EC.element_to_be_clickable((By.CSS_SELECTOR, selector))
+                        )
+                        selector_used = selector
+                        logging.info(f"Found product: {selector}")
+                        break
+                    except TimeoutException:
+                        continue
+                
+                if not first_product:
+                    logging.error("Could not find any product links with available selectors")
+                    # Take a screenshot for debugging
+                    try:
+                        self.driver.save_screenshot("logs/product_selection_failed.png")
+                        logging.info("Screenshot saved to logs/product_selection_failed.png")
+                    except:
+                        pass
+                    return False
+                
+                # Get product info before clicking for logging
                 try:
-                    self.driver.save_screenshot("logs/product_selection_failed.png")
-                    logging.info("Screenshot saved to logs/product_selection_failed.png")
+                    product_href = first_product.get_attribute('href')
+                    logging.info(f"Product link: {product_href}")
                 except:
                     pass
-                return False
-            
-            # Get product info before clicking for logging
-            try:
-                product_href = first_product.get_attribute('href')
-                logging.info(f"Product link: {product_href}")
-            except:
-                pass
-            
-            first_product.click()
-            
-            # Wait for product page to load with multiple possible selectors
-            product_title_selectors = [
-                "#productTitle",
-                ".product-title",
-                "h1.a-size-large",
-                "[data-feature-name='productTitle']"
-            ]
-            
-            product_title_element = None
-            for title_selector in product_title_selectors:
+                
+                # Try clicking with multiple methods for stability
+                click_success = False
+                
+                # Method 1: Regular click
                 try:
-                    product_title_element = WebDriverWait(self.driver, 5).until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, title_selector))
-                    )
-                    break
-                except TimeoutException:
-                    continue
-            
-            if product_title_element:
-                product_title = product_title_element.text
-                logging.info(f"Selected product: {product_title}")
-            else:
-                logging.warning("Could not find product title, but page seems to have loaded")
-                product_title = "Unknown Product"
-            
-            return True
-            
-        except Exception as e:
-            logging.error(f"Product selection failed: {str(e)}")
-            # Take a screenshot for debugging
-            try:
-                self.driver.save_screenshot("logs/product_selection_error.png")
-                logging.info("Error screenshot saved to logs/product_selection_error.png")
-            except:
-                pass
-            return False
+                    first_product.click()
+                    click_success = True
+                    logging.info("Product clicked successfully (regular click)")
+                except Exception as e:
+                    logging.warning(f"Regular click failed: {e}")
+                
+                # Method 2: JavaScript click if regular click fails
+                if not click_success:
+                    try:
+                        self.driver.execute_script("arguments[0].click();", first_product)
+                        click_success = True
+                        logging.info("Product clicked successfully (JavaScript click)")
+                    except Exception as e:
+                        logging.warning(f"JavaScript click failed: {e}")
+                
+                # Method 3: Direct navigation if clicking fails
+                if not click_success and product_href:
+                    try:
+                        self.driver.get(product_href)
+                        click_success = True
+                        logging.info("Product accessed successfully (direct navigation)")
+                    except Exception as e:
+                        logging.error(f"Direct navigation failed: {e}")
+                
+                if not click_success:
+                    raise Exception("All click methods failed")
+                
+                # Wait for product page to load with multiple possible selectors
+                product_title_selectors = [
+                    "#productTitle",
+                    ".product-title",
+                    "h1.a-size-large",
+                    "[data-feature-name='productTitle']"
+                ]
+                
+                product_title_element = None
+                for title_selector in product_title_selectors:
+                    try:
+                        product_title_element = WebDriverWait(self.driver, 5).until(
+                            EC.presence_of_element_located((By.CSS_SELECTOR, title_selector))
+                        )
+                        break
+                    except TimeoutException:
+                        continue
+                
+                if product_title_element:
+                    product_title = product_title_element.text
+                    logging.info(f"Selected product: {product_title}")
+                else:
+                    logging.warning("Could not find product title, but page seems to have loaded")
+                    product_title = "Unknown Product"
+                
+                return True
+                
+            except Exception as e:
+                logging.error(f"Product selection failed (attempt {attempt + 1}): {str(e)}")
+                
+                # Check if it's a tab crash
+                if "tab crashed" in str(e).lower() or "session" in str(e).lower():
+                    logging.error("Chrome tab crashed - attempting recovery")
+                    if attempt < max_retries - 1:
+                        try:
+                            self._recover_driver()
+                            # Re-search for the product after recovery
+                            self.driver.get("https://www.amazon.in")
+                            time.sleep(1)
+                            continue
+                        except Exception as recovery_e:
+                            logging.error(f"Driver recovery failed: {recovery_e}")
+                
+                # Take a screenshot for debugging on final attempt
+                if attempt == max_retries - 1:
+                    try:
+                        self.driver.save_screenshot("logs/product_selection_error.png")
+                        logging.info("Error screenshot saved to logs/product_selection_error.png")
+                    except:
+                        pass
+                
+                if attempt == max_retries - 1:
+                    return False
+                else:
+                    time.sleep(1)  # Brief pause before retry
+        
+        return False
     
-    def add_to_cart(self):
-        """Add the selected product to cart."""
+    def add_to_cart(self, flash_sale_mode=True):
+        """Add the selected product to cart - OPTIMIZED FOR FLASH SALES."""
         try:
-            logging.info("Adding product to cart...")
+            logging.info("FLASH SALE: Adding to cart...")
             
             # Extended list of selectors for "Add to Cart" button (Amazon changes these frequently)
             add_to_cart_selectors = [
@@ -375,23 +495,44 @@ class AmazonAutoBuyer:
             add_to_cart_btn = None
             selector_used = None
             
-            # Try each selector until one works
+            # Try each selector until one works - FLASH SALE OPTIMIZED
             for selector in add_to_cart_selectors:
                 try:
-                    logging.info(f"Trying add-to-cart selector: {selector}")
-                    add_to_cart_btn = WebDriverWait(self.driver, 3).until(
+                    # Ultra-fast detection: 0.2 seconds max per selector
+                    add_to_cart_btn = WebDriverWait(self.driver, 0.2).until(
                         EC.element_to_be_clickable((By.CSS_SELECTOR, selector))
                     )
                     selector_used = selector
-                    logging.info(f"Successfully found add-to-cart button with selector: {selector}")
+                    logging.info(f"Cart btn found: {selector}")
                     break
                 except TimeoutException:
-                    logging.debug(f"Add-to-cart selector failed: {selector}")
                     continue
+            
+            # FLASH SALE INSTANT FALLBACK: Try to find elements immediately
+            if not add_to_cart_btn and flash_sale_mode:
+                logging.info("FLASH: Instant fallback...")
+                try:
+                    # Instant search - no waiting
+                    elements = self.driver.find_elements(By.CSS_SELECTOR, "button, input[type='submit'], input[type='button']")
+                    for elem in elements:
+                        try:
+                            text = (elem.text or elem.get_attribute('value') or '').lower()
+                            if 'add to cart' in text or 'add to basket' in text:
+                                if elem.is_displayed() and elem.is_enabled():
+                                    add_to_cart_btn = elem
+                                    logging.info(f"FLASH: Found '{text}'")
+                                    break
+                        except:
+                            continue
+                    if add_to_cart_btn:
+                        selector_used = "flash-instant"
+                except Exception:
+                    pass
             
             if not add_to_cart_btn:
                 logging.error("Could not find Add to Cart button with any known selector")
-                logging.info("Attempting fallback: searching for buttons with 'add to cart' text...")
+                if not flash_sale_mode:
+                    logging.info("Attempting fallback: searching for buttons with 'add to cart' text...")
                 
                 # Take a screenshot for debugging
                 try:
@@ -469,31 +610,34 @@ class AmazonAutoBuyer:
             
             add_to_cart_btn.click()
             
-            logging.info("Add to cart button clicked successfully")
-            time.sleep(3)  # Wait for cart update
+            logging.info("FLASH: Cart button clicked")
             
-            # Check if we were successful by looking for cart confirmation or cart count update
-            try:
-                # Look for cart count or confirmation message
-                cart_indicators = [
-                    "#nav-cart-count",
-                    ".nav-cart-count",
-                    "#sw-atc-confirmation-container",
-                    ".a-alert-success",
-                    "[data-feature-name='addToCart']"
-                ]
-                
-                for indicator in cart_indicators:
-                    try:
-                        element = WebDriverWait(self.driver, 2).until(
-                            EC.presence_of_element_located((By.CSS_SELECTOR, indicator))
-                        )
-                        logging.info(f"Cart update confirmed via: {indicator}")
-                        break
-                    except TimeoutException:
-                        continue
-            except:
-                pass
+            if flash_sale_mode:
+                # FLASH SALE: Minimal verification, maximum speed
+                time.sleep(0.5)  # Minimal wait
+                try:
+                    # Quick check for cart count only
+                    cart_count = self.driver.find_element(By.CSS_SELECTOR, "#nav-cart-count, .nav-cart-count")
+                    if cart_count:
+                        logging.info("FLASH: Cart confirmed")
+                except:
+                    pass  # Don't wait - assume success for speed
+            else:
+                # Normal mode: Full verification
+                time.sleep(3)  # Wait for cart update
+                try:
+                    cart_indicators = ["#nav-cart-count", ".nav-cart-count", "#sw-atc-confirmation-container", ".a-alert-success"]
+                    for indicator in cart_indicators:
+                        try:
+                            element = WebDriverWait(self.driver, 2).until(
+                                EC.presence_of_element_located((By.CSS_SELECTOR, indicator))
+                            )
+                            logging.info(f"Cart update confirmed via: {indicator}")
+                            break
+                        except TimeoutException:
+                            continue
+                except:
+                    pass
             
             logging.info("Product added to cart successfully")
             return True
@@ -530,8 +674,52 @@ class AmazonAutoBuyer:
             logging.error(f"Checkout navigation failed: {str(e)}")
             return False
     
+    def flash_sale_purchase(self, product_name):
+        """ULTRA-FAST purchase for flash sales - OPTIMIZED FOR SPEED."""
+        start_time = time.time()
+        try:
+            logging.info(f"FLASH SALE MODE: Starting purchase for '{product_name}'")
+            
+            # Setup browser (should be pre-connected)
+            self.setup_driver()
+            
+            # Quick login check
+            if not self.login_to_amazon():
+                return False
+            
+            # Speed-optimized search
+            if not self.search_product(product_name):
+                return False
+            
+            # Store current search for potential recovery
+            current_search = product_name
+            
+            # Instant product selection  
+            if not self.select_first_product():
+                # If product selection failed due to crash, try to search again
+                logging.warning("Product selection failed, attempting search recovery...")
+                if self.search_product(current_search):
+                    if not self.select_first_product():
+                        return False
+                else:
+                    return False
+            
+            # Lightning-fast add to cart
+            if not self.add_to_cart(flash_sale_mode=True):
+                return False
+            
+            elapsed = time.time() - start_time
+            logging.info(f"FLASH SALE COMPLETED in {elapsed:.2f} seconds!")
+            
+            return True
+            
+        except Exception as e:
+            elapsed = time.time() - start_time
+            logging.error(f"FLASH SALE FAILED after {elapsed:.2f} seconds: {str(e)}")
+            return False
+    
     def complete_purchase(self, product_name):
-        """Complete the entire purchase process."""
+        """Complete the entire purchase process - NORMAL MODE."""
         try:
             # Setup browser
             self.setup_driver()
@@ -549,7 +737,7 @@ class AmazonAutoBuyer:
                 return False
             
             # Add to cart
-            if not self.add_to_cart():
+            if not self.add_to_cart(flash_sale_mode=False):
                 return False
             
             # Proceed to checkout
