@@ -91,6 +91,7 @@ Edit `config/config.json` with your settings:
 
 - **credentials**: Your Amazon login credentials
 - **headless**: Run browser in headless mode (true/false)
+- **reuse_existing_browser**: Connect to existing Chrome session instead of opening new browser (true/false)
 - **max_price**: Maximum price limit for purchases
 - **confirmation_required**: Require manual confirmation before purchase
 - **prime_only**: Only select Prime-eligible products
@@ -109,6 +110,30 @@ Edit `config/config.json` with your settings:
 
 3. **Monitor the process** through the browser window and console logs
 
+### Browser Reuse Feature
+
+By default, the script is configured to reuse an existing Chrome browser session instead of opening a new browser window each time. This is more convenient and efficient.
+
+#### To use browser reuse:
+
+1. **Start Chrome with remote debugging** (first time setup):
+   ```bash
+   ./start_chrome_debug.sh
+   ```
+   This will open Chrome with Amazon.in and enable remote debugging.
+
+2. **Run the Amazon Auto Buyer** as normal:
+   ```bash
+   python src/amazon_buyer.py
+   ```
+   The script will connect to your existing Chrome session.
+
+3. **Keep the Chrome window open** between runs to reuse the same session.
+
+#### To disable browser reuse:
+
+Set `"reuse_existing_browser": false` in `config/config.json`. This will open a new browser window each time (old behavior).
+
 ### Safety Features
 
 - The script **STOPS at checkout** and requires manual intervention to complete purchases
@@ -126,6 +151,7 @@ amazon-auto-buyer/
 │   └── config.json          # Configuration file (not tracked in git)
 ├── logs/
 │   └── amazon_buyer.log     # Log files
+├── start_chrome_debug.sh    # Helper script to start Chrome with remote debugging
 ├── requirements.txt         # Python dependencies
 ├── .gitignore              # Git ignore rules
 └── README.md               # This file
